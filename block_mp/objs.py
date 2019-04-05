@@ -10,14 +10,24 @@
 
 from __future__ import print_function
 
+import os
 import sys
+
+sys.path.append(os.path.abspath(''))
+
+import logging
+from logging.config import fileConfig
+
+fileConfig('../logging.conf')
+# note: logger is not thread-safe, pls be careful when running multi-threads with logging
+logger = logging.getLogger('fei')
 
 import numpy as np
 
 
 class GlobalEMS(object):
 
-    def __init__(self, features, trade_off, max_iter=1000, learning_rate=0.001, bound=5, epsilon=1e-3):
+    def __init__(self, features, trade_off, max_iter=2000, learning_rate=0.001, bound=5, epsilon=1e-3, verbose=True):
         self.features = features
         self.num_nodes = len(features[0])
         self.num_time_stamps = len(features)
@@ -26,6 +36,7 @@ class GlobalEMS(object):
         self.learning_rate = learning_rate
         self.bound = bound
         self.epsilon = epsilon
+        self.verbose = verbose
 
     def get_ems_val(self, x, features):
 
@@ -34,17 +45,19 @@ class GlobalEMS(object):
 
         if not 0. == sum_x:
             ct_x = np.dot(features, x)
-            ems_val = ct_x / sum_x
+            ems_val = ct_x / np.sqrt(sum_x)
 
         return ems_val
 
 
     def get_global_ems(self, x_array):
-        x_vec = []
-        feature_vec = []
-        for t in range(self.num_time_stamps):
-            x_vec += list(x_array[t])
-            feature_vec += self.features[t]
+        # x_vec = []
+        # feature_vec = []
+        # for t in range(self.num_time_stamps):
+        #     x_vec += list(x_array[t])
+        #     feature_vec += list(self.features[t])
+        x_vec = x_array.flatten()
+        feature_vec = self.features.flatten()
 
         global_ems_val = self.get_ems_val(x_vec, feature_vec)
 
@@ -66,7 +79,7 @@ class GlobalEMS(object):
     def get_init_x_random(self):
         x_list = []
         for t in range(self.num_time_stamps):
-            xt = np.random.rand(self.num_nodes, dtype=np.float64)
+            xt = np.random.rand(self.num_nodes)
             xt = np.array(xt >= 0.5, dtype=np.float64)
             x_list.append(xt)
 
@@ -94,34 +107,43 @@ class GlobalEMS(object):
                 current_x = self._update_maximizer(grad_x, indicator_x, current_x)
                 current_x_array[t] = current_x
 
+            if 0 == i % 100 and self.verbose:
+                obj_val, global_ems_val, penalty = self.get_obj_val(current_x_array)
+                logger.debug('obj value={:.5f}, global_ems_value={:.5f}, penalty={:.5f}'.format(obj_val, global_ems_val, penalty))
+
             diff_norm_x_array = np.linalg.norm(current_x_array - prev_x_array)
             if diff_norm_x_array <= self.epsilon:
                 break
 
         return current_x_array
 
-
     def get_gradient(self, x_array, t):
 
         feature_vec = self.features[t]
 
-        sum_x_array = 0.
-        for x in x_array:
-            sum_x_array += np.sum(x)
+        # sum_x_array = 0.
+        # for x in x_array:
+        #     sum_x_array += np.sum(x)
+        sum_x_array = np.sum(x_array)
+        # print('sum_x_array {:.5f}'.format(sum_x_array))
+        # print('sum_x_array_2 {:.5f}'.format(sum_x_array_2))
 
-        sum_ct_x_array = 0.
         if 0. == sum_x_array:
             print('gradient_x, input x vector values are all zeros !', file=sys.stderr)
             grad = [0.] * self.num_nodes
         else:
-            for i, x in enumerate(x_array):
-                sum_ct_x_array += np.dot(self.features[t], x)
+            sum_ct_x_array = np.dot(self.features.flatten(), x_array.flatten())
+            # for i, x in enumerate(x_array):
+            #     sum_ct_x_array += np.dot(self.features[i], x)
+            # print('sum_ct_x_array {:.5f}'.format(sum_ct_x_array))
+            # print('sum_ct_x_array_2 {:.5f}'.format(sum_ct_x_array_2))
+
             grad = feature_vec / np.sqrt(sum_x_array) - .5 * sum_ct_x_array / np.power(sum_x_array, 1.5)
 
         if 0 == t:
             grad += 2 * self.trade_off * (x_array[t+1] - x_array[t])
         elif self.num_time_stamps - 1 == t:
-            grad - 2 * self.trade_off * (x_array[t] - x_array[t-1])
+            grad -= 2 * self.trade_off * (x_array[t] - x_array[t-1])
         else:
             grad -= 2 * self.trade_off * (x_array[t] - x_array[t-1])
             grad += 2 * self.trade_off * (x_array[t+1] - x_array[t])
@@ -130,9 +152,6 @@ class GlobalEMS(object):
             raise ('something is wrong in gradient of x !')
 
         return grad
-
-
-        return None
 
 
     def _update_maximizer(self, grad_x, indicator_x, x):
@@ -144,7 +163,7 @@ class GlobalEMS(object):
         num_zero_psi = len(np.where(updated_proj_x == 0.))
         updated_proj_x[updated_proj_x > 1.] = 1.
         if num_zero_psi == len(x):
-            print('', file=sys.stderr)
+            print('siga-1 is too large and all values in the gradient are non-positive', file=sys.stderr)
             # select the first bound largest entries and set them 1s
             for i in range(self.bound):
                 updated_proj_x[sorted_indices[i]] = 1.
