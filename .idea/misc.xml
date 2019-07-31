@@ -82,5 +82,5 @@
       <textMaps />
     </LinkMapSettings>
   </component>
-  <component name="ProjectRootManager" version="2" project-jdk-name="Remote Python 2.7.5 (ssh://fj399435@ceashpc-07.rit.albany.edu:22/network/rit/lab/ceashpc/fjie/venv/py2/bin/python)" project-jdk-type="Python SDK" />
+  <component name="ProjectRootManager" version="2" project-jdk-name="Remote Python 2.7.5 (ssh://fj399435@head.arcc.albany.edu:22/network/rit/lab/ceashpc/fjie/venv/py2/bin/python)" project-jdk-type="Python SDK" />
 </project>

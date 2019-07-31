@@ -1,18 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="Always" serverName="ceashpc-07.rit.albany.edu">
+  <component name="PublishConfigData" autoUpload="Always" serverName="head.arcc.albany.edu">
     <serverData>
-      <paths name="ceashpc-03.rit.albany.edu">
+      <paths name="ceashpc-07.rit.albany.edu">
         <serverdata>
           <mappings>
             <mapping deploy="/GraphOpt" local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>
-      <paths name="ceashpc-07.rit.albany.edu">
+      <paths name="fj399435@head.arcc.albany.edu:22">
         <serverdata>
           <mappings>
-            <mapping deploy="/GraphOpt" local="$PROJECT_DIR$" web="/" />
+            <mapping deploy="/network/rit/lab/ceashpc/fjie/projects/GraphOpt" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="head.arcc.albany.edu">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/network/rit/lab/ceashpc/fjie/projects/GraphOpt" local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>

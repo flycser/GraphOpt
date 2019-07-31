@@ -5,7 +5,7 @@
       <sourceFolder url="file://$MODULE_DIR$/utils" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/../IHTGHTP/venv" />
     </content>
-    <orderEntry type="jdk" jdkName="Remote Python 2.7.5 (ssh://fj399435@ceashpc-07.rit.albany.edu:22/network/rit/lab/ceashpc/fjie/venv/py2/bin/python)" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Remote Python 2.7.5 (ssh://fj399435@head.arcc.albany.edu:22/network/rit/lab/ceashpc/fjie/venv/py2/bin/python)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
   <component name="TestRunnerService">

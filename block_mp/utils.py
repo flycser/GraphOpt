@@ -23,9 +23,34 @@ fileConfig('../logging.conf')
 logger = logging.getLogger('fei')
 
 import numpy as np
+import networkx as nx
 
 
-def evaluate(true_subgraphs, pred_subgraphs):
+def evaluate(true_subgraph, pred_subgraph):
+    true_subgraph, pred_subgraph = set(true_subgraph), set(pred_subgraph)
+
+    prec = rec = fm = iou = 0.
+
+    intersection = true_subgraph & pred_subgraph
+    union = true_subgraph | pred_subgraph
+
+    if not 0. == len(pred_subgraph):
+        prec = len(intersection) / float(len(pred_subgraph))
+
+    if not 0. == len(true_subgraph):
+        rec = len(intersection) / float(len(true_subgraph))
+
+    if prec + rec > 0.:
+        fm = (2. * prec * rec) / (prec + rec)
+
+    if union:
+        iou = len(intersection) / float(len(union))
+
+    return prec, rec, fm, iou
+
+
+
+def evaluate_evo(true_subgraphs, pred_subgraphs):
     num_time_stamps = len(true_subgraphs)
 
     prec_list = []
@@ -127,3 +152,49 @@ def normalize_gradient(x, gradient):
             normalized_gradient[i] = gradient[i]
 
     return normalized_gradient
+
+
+def relabel_nodes(block_node_sets):
+    """
+    global_node_id - block_node_id
+    :param block_node_sets:
+    :return:
+    """
+
+    node_id_dict = {}
+    for node_set in block_node_sets:
+        ind = 0
+        for node in sorted(node_set):
+            node_id_dict[node] = ind
+            ind +=1
+
+    return node_id_dict
+
+def relabel_edges(graph, block_node_sets, node_id_dict):
+    """
+    relabel edges of each block with block node id
+    :param graph:
+    :param block_node_sets:
+    :param node_id_dict:
+    :return:
+    """
+    relabeled_edge_sets = []
+    for node_set in block_node_sets:
+        edges = []
+        for edge in nx.subgraph(graph, node_set).edges():
+            node_1, node_2 = edge
+            edges.append((node_id_dict[node_1], node_id_dict[node_2]))
+
+        relabeled_edge_sets.append(edges)
+
+    return np.array(relabeled_edge_sets)
+
+def get_boundary_edge_x_dict(x, boundary_edges, node_id_dict):
+    boundary_edge_x_dict = {}
+    for edge in boundary_edges:
+        node_1, node_2 = edge
+        block_node_id = node_id_dict[node_1]
+        adj_x_val = x[node_2]
+        boundary_edge_x_dict[(block_node_id, node_2)] = adj_x_val
+
+    return boundary_edge_x_dict
