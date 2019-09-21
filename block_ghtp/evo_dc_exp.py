@@ -63,7 +63,8 @@ def run_dataset(paras):
 
         logger.debug('instance: {:d}'.format(i))
 
-        opt_x_array, run_time = optimize(instance, sparsity, trade_off, learning_rate, max_iter, epsilon, logger=None)
+        # opt_x_array, run_time = optimize(instance, sparsity, trade_off, learning_rate, max_iter, epsilon, logger=None)
+        opt_x_array, run_time = optimize(instance, sparsity, trade_off, learning_rate, max_iter, epsilon, logger=logger)
 
         logger.debug('run time: {:.5f}'.format(run_time))
 
@@ -161,9 +162,10 @@ def test(sparsity, trade_off, learning_rate):
     # sparsity = 250
     # trade_off = 0.0005
     # learning_rate = 1.
-    max_iter = 20
+    max_iter = 200
     epsilon = 1e-3
-    write_to_dir = '/network/rit/lab/ceashpc/share_data/GraphOpt/log/ghtp/evo_dc'
+    # write_to_dir = '/network/rit/lab/ceashpc/share_data/GraphOpt/log/ghtp/evo_dc'
+    write_to_dir = None
 
     paras = dataset, sparsity, trade_off, learning_rate, max_iter, epsilon, write_to_dir, data_type
     run_dataset(paras)

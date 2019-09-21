@@ -808,7 +808,7 @@ class BlockSumEMS(object):
 
 class DualEMS(object):
 
-    def __init__(self, features, trade_off, max_iter=2000, learning_rate=0.001, bound=5, epsilon=1e-3, verbose=True):
+    def __init__(self, features, trade_off, max_iter=2000, learning_rate=0.01, bound=5, epsilon=1e-3, verbose=True):
 
         self.features = features
         self.num_nodes = len(features)
@@ -836,9 +836,9 @@ class DualEMS(object):
         y_ems_val = self.get_ems_val(y, self.features)
 
         penalty = 0.
-        penalty += np.linalg.norm(x - y)
+        penalty += np.linalg.norm(x - y) ** 2 # square
 
-        obj_val = x_ems_val + y_ems_val - self.trade_off * penalty
+        obj_val = x_ems_val + y_ems_val - self.trade_off * penalty # maximize, subtract penalty
 
         return obj_val, x_ems_val, y_ems_val, penalty
 
@@ -852,6 +852,7 @@ class DualEMS(object):
 
 
     def get_gradient(self, x, y):
+        # summation of ems
 
         sum_x = np.sum(x)
         if 0. == sum_x:
@@ -859,9 +860,9 @@ class DualEMS(object):
             grad_x = [0.] * self.num_nodes
         else:
             sum_ct_x = np.dot(self.features, x)
-            grad_x = self.features / np.sqrt(sum_x) - .5 * sum_ct_x / np.power(sum_x, 1.5) # gradient for one graph
+            grad_x = self.features / np.sqrt(sum_x) - .5 * sum_ct_x / np.power(sum_x, 1.5) # ems gradient for one graph
 
-        # penalty
+        # penalty gradient
         grad_x -= 2 * self.trade_off * (x - y)
 
         if np.isnan(grad_x).any():
@@ -885,15 +886,31 @@ class DualEMS(object):
 
             # update second graph
             indicator_y = np.zeros_like(current_y)
-            indicator_y[list(omega_x)] = 1.
+            # indicator_y[list(omega_x)] = 1. # note, error, but results are good
+            indicator_y[list(omega_y)] = 1.
             grad_y = self.get_gradient(current_y, current_x)
 
             current_y = self._update_maximizer(grad_y, indicator_y, current_y)
 
 
+            print('iter', i)
+            print('func val', self.get_obj_val(current_x, current_y))
+
             diff_norm = np.sqrt(np.linalg.norm(current_x - prev_x) ** 2 + np.linalg.norm(current_y - prev_y) ** 2)
+
+            print('diff_norm', diff_norm)
+
             if diff_norm <= self.epsilon:
                 break
+
+        print('omega_x', len(omega_x), sorted(list(omega_x)))
+        print('omega_y', len(omega_y), sorted(list(omega_y)))
+        print('current_x', len(np.nonzero(current_x)[0]), sorted(np.nonzero(current_x)[0]))
+        print('current_y', len(np.nonzero(current_y)[0]), sorted(np.nonzero(current_y)[0]))
+
+        np.set_printoptions(precision=4, linewidth=7000)
+        print(current_x)
+        print(current_y)
 
         return current_x, current_y
 

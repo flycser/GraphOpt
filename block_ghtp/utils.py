@@ -111,7 +111,7 @@ def evaluate_evo(true_subgraphs, pred_subgraphs):
 
 
 def evaluate_block(true_subgraph, pred_subgraph):
-    true_subgraph, pred_subgraph = set(list(true_subgraph)), set(list(pred_subgraph))
+    true_subgraph, pred_subgraph = set(list(true_subgraph)), set(list(pred_subgraph)) # note, list could convert ndarray to list
     intersection = true_subgraph.intersection(pred_subgraph)
     union = true_subgraph.union(pred_subgraph)
 

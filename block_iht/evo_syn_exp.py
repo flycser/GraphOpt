@@ -42,7 +42,7 @@ def run_dataset(paras):
     if not write_to_dir:
         logger = logging.getLogger('fei')
     else:
-        log_fn = '{}_mu_{}_sparsity_{}_trade_{}_lr_{}_{}.txt'.format(DATASET, mu, sparsity, trade_off, learning_rate, data_type)
+        log_fn = '{}_mu_{}_sparsity_{}_trade_{}_lr_{}_{}_curve.txt'.format(DATASET, mu, sparsity, trade_off, learning_rate, data_type)
         logger = logging.getLogger(log_fn)
         formatter = logging.Formatter('')
         file_handler = logging.FileHandler(filename=os.path.join(write_to_dir, log_fn), mode='w')
@@ -55,10 +55,12 @@ def run_dataset(paras):
     logger.debug('learning rate: {:.5f}'.format(learning_rate))
     logger.debug('trade off: {:.5f}'.format(trade_off))
     for i, instance in enumerate(dataset):
+        print(instance.keys())
 
         logger.debug('instance: {:d}'.format(i))
 
-        opt_x_array, run_time = optimize(instance, sparsity, trade_off, learning_rate, max_iter, epsilon, logger=None)
+        # opt_x_array, run_time = optimize(instance, sparsity, trade_off, learning_rate, max_iter, epsilon, logger=None)
+        opt_x_array, run_time = optimize(instance, sparsity, trade_off, learning_rate, max_iter, epsilon, logger=logger)
 
         logger.debug('run time: {:.5f}'.format(run_time))
 
@@ -124,7 +126,8 @@ def train_mps(sparsity, trade_off, learning_rate, mu):
 
     max_iter = 2000
     epsilon = 1e-3
-    write_to_dir = '/network/rit/lab/ceashpc/share_data/GraphOpt/log/iht/evo_syn'
+    # write_to_dir = '/network/rit/lab/ceashpc/share_data/GraphOpt/log/iht/evo_syn'
+    write_to_dir = None
 
     paras = dataset, sparsity, trade_off, learning_rate, max_iter, epsilon, write_to_dir, mu, data_type
     run_dataset(paras)
@@ -171,7 +174,8 @@ if __name__ == '__main__':
     #                    mem=os.getenv("SLURM_MEM_PER_CPU"), node=os.getenv("SLURM_NODELIST"),
     #                    job=os.getenv("SLURM_JOB_ID")))
 
-    sparsity, trade_off, learning_rate, mu = int(sys.argv[1]), float(sys.argv[2]), float(sys.argv[3]), int(sys.argv[4])
+    # sparsity, trade_off, learning_rate, mu = int(sys.argv[1]), float(sys.argv[2]), float(sys.argv[3]), int(sys.argv[4])
+    sparsity, trade_off, learning_rate, mu = 125, 0.0001, 1., 3
 
     train_mps(sparsity, trade_off, learning_rate, mu)
 

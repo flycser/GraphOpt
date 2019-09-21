@@ -70,7 +70,7 @@ def run_dataset(paras):
             pred_subgraph = np.nonzero(opt_x)[0]
             raw_pred_subgraphs.append(pred_subgraph)
 
-        global_prec, global_rec, global_fm, global_iou, valid_global_prec, valid_global_rec, valid_global_fm, valid_global_iou, _, _, _, _, _ = evaluate_evo(instance['subgraphs'], raw_pred_subgraphs)
+        global_prec, global_rec, global_fm, global_iou, valid_global_prec, valid_global_rec, valid_global_fm, valid_global_iou, _, _, _, _, _ = evaluate_evo(instance['true_subgraphs'], raw_pred_subgraphs)
 
         logger.debug('-' * 5 + ' performance in the whole interval ' + '-' * 5)
         logger.debug('global precision: {:.5f}'.format(global_prec))
@@ -84,7 +84,7 @@ def run_dataset(paras):
         logger.debug('global iou      : {:.5f}'.format(valid_global_iou))
 
         refined_pred_subgraphs = post_process_evo(instance['graph'], raw_pred_subgraphs, dataset=DATASET)
-        refined_global_prec, refined_global_rec, refined_global_fm, refined_global_iou, _, _, _, _, _, _, _, _, _ = evaluate_evo(instance['subgraphs'], refined_pred_subgraphs)
+        refined_global_prec, refined_global_rec, refined_global_fm, refined_global_iou, _, _, _, _, _, _, _, _, _ = evaluate_evo(instance['true_subgraphs'], refined_pred_subgraphs)
 
         logger.debug('-' * 5 + ' refined performance ' + '-' * 5)
         logger.debug('refined global precision: {:.5f}'.format(refined_global_prec))
@@ -122,7 +122,8 @@ def train_mps():
     learning_rate_list = [1., 0.5, 0.1, 0.05, 0.01, 0.005, 0.001]
     max_iter = 2000
     epsilon = 1e-3
-    write_to_dir = '/network/rit/lab/ceashpc/share_data/GraphOpt/log/ghtp/evo_bwsn'
+    # write_to_dir = '/network/rit/lab/ceashpc/share_data/GraphOpt/log/ghtp/evo_bwsn'
+    write_to_dir = None
 
     input_paras = []
     for sparsity in sparsity_list:
@@ -147,14 +148,28 @@ def test():
     with open(rfn, 'rb') as rfile:
         dataset = pickle.load(rfile)
 
+    # for instance in dataset:
+    #     print(instance.keys())
+
+    new_dataset = []
+
+    for instance in dataset:
+        if 'subgraphs' in instance.keys():
+            instance['true_subgraphs'] = instance.pop('subgraphs')
+            # print(instance.keys())
+            new_dataset.append(instance)
+
+
     sparsity = 1000
     trade_off = 0.001
-    learning_rate = 0.01
+    learning_rate = 1.
     max_iter = 2000
     epsilon = 1e-3
     write_to_dir = None
 
-    paras = dataset, sparsity, trade_off, learning_rate, max_iter, epsilon, write_to_dir
+    print(sparsity, trade_off, learning_rate, max_iter, noise, fn)
+
+    paras = new_dataset, sparsity, trade_off, learning_rate, max_iter, epsilon, write_to_dir
     run_dataset(paras)
 
 

@@ -299,7 +299,7 @@ def run_node():
     num_blocks = 10
     deg = 3
     func_name = "PartitionEMS"
-    max_iter = 10
+    max_iter = 100
     sparsity = int(num_nodes / num_blocks / 2.)
     trade_off = 0.0005
 

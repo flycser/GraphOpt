@@ -78,6 +78,8 @@ def optimize(instance, sparsity, trade_off, learning_rate, max_iter, epsilon=1e-
         logger.debug('ground truth, obj value: {:.5f}, global ems value: {:.5f}, penalty: {:.5f}'.format(true_obj_val, true_gloabl_ems_val, true_penalty))
 
     current_x_array = func.get_init_x_zeros() + 1e-6
+    # current_x_array = true_x_array
+    # print('start from grount truth')
     for iter in range(max_iter):
         if logger:
             logger.debug('iteration: {:d}'.format(iter))
@@ -88,6 +90,7 @@ def optimize(instance, sparsity, trade_off, learning_rate, max_iter, epsilon=1e-
         omega_x_list = []
         for t in range(num_time_stamps):
             grad_x = func.get_gradient(current_x_array, t)
+            print(grad_x)
             current_x = current_x_array[t] if iter > 0 else np.zeros_like(current_x_array[t], dtype=np.float64)
             normalized_grad = normalize_gradient(current_x, grad_x)
             start_proj_time = time.time()
@@ -96,6 +99,7 @@ def optimize(instance, sparsity, trade_off, learning_rate, max_iter, epsilon=1e-
             iter_proj_time += time.time() - start_proj_time
             omega_x = set(re_nodes)
             omega_x_list.append(omega_x)
+            print(sorted(omega_x))
 
         # update style 1
         # update all blocks simultaneously at each iteration
@@ -120,6 +124,8 @@ def optimize(instance, sparsity, trade_off, learning_rate, max_iter, epsilon=1e-
             current_x = normalize(current_x) # note, restrict current_x in [0, 1]
 
             current_x_array[t] = current_x
+
+            # print(t, sorted(np.nonzero(current_x)))
 
         acc_proj_time += iter_proj_time
 
@@ -157,7 +163,7 @@ def run_instance(instance, sparsity, trade_off, learning_rate, max_iter=2000, ep
         raw_pred_subgraphs.append(pred_subgraph)
 
     global_prec, global_rec, global_fm, global_iou, valid_global_prec, valid_global_rec, valid_global_fm, valid_global_iou, _, _, _, _, _ = evaluate_evo(
-        instance['subgraphs'], raw_pred_subgraphs)
+        instance['true_subgraphs'], raw_pred_subgraphs)
 
     logger.debug('-' * 5 + 'performance in the whole interval' + '-' * 5)
     logger.debug('global precision: {:.5f}'.format(global_prec))
@@ -172,7 +178,7 @@ def run_instance(instance, sparsity, trade_off, learning_rate, max_iter=2000, ep
 
     refined_pred_subgraphs = post_process_evo(instance['graph'], raw_pred_subgraphs)
     global_prec, global_rec, global_fm, global_iou, valid_global_prec, valid_global_rec, valid_global_fm, valid_global_iou, _, _, _, _, _ = evaluate_evo(
-        instance['subgraphs'], refined_pred_subgraphs)
+        instance['true_subgraphs'], refined_pred_subgraphs)
 
     logger.debug('-' * 5 + ' refined performance ' + '-' * 5)
     logger.debug('refined global precision: {:.5f}'.format(global_prec))

@@ -110,6 +110,9 @@ def run_dataset(paras):
         logger.debug('refined f-measure: {:.5f}'.format(refined_fm))
         logger.debug('refined iou      : {:.5f}'.format(refined_iou))
 
+        print(type(raw_pred_subgraph_x))
+        print(type(raw_pred_subgraph_y))
+
         combine_pred_subgraph = raw_pred_subgraph_x & raw_pred_subgraph_y
 
         combine_prec, combine_rec, combine_fm, combine_iou = evaluate_block(instance['true_subgraph'], raw_pred_subgraph_y)

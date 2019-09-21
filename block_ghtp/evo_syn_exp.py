@@ -42,7 +42,7 @@ def run_dataset(paras):
     if not write_to_dir:
         logger = logging.getLogger('fei')
     else:
-        log_fn = '{}_mu_{}_sparsity_{:d}_trade_{}_lr_{}.txt'.format(DATASET, mu, sparsity, trade_off, learning_rate)
+        log_fn = '{}_mu_{}_sparsity_{:d}_trade_{}_lr_{}_curve.txt'.format(DATASET, mu, sparsity, trade_off, learning_rate)
 
         if os.path.isfile(os.path.join(write_to_dir, log_fn)):
             print('file exist !!!')
@@ -70,7 +70,7 @@ def run_dataset(paras):
             pred_subgraph = np.nonzero(opt_x)[0]
             raw_pred_subgraphs.append(pred_subgraph)
 
-        global_prec, global_rec, global_fm, global_iou, valid_global_prec, valid_global_rec, valid_global_fm, valid_global_iou, _, _, _, _, _ = evaluate_evo(instance['subgraphs'], raw_pred_subgraphs)
+        global_prec, global_rec, global_fm, global_iou, valid_global_prec, valid_global_rec, valid_global_fm, valid_global_iou, _, _, _, _, _ = evaluate_evo(instance['true_subgraphs'], raw_pred_subgraphs)
 
         logger.debug('-' * 5 + ' performance in the whole interval ' + '-' * 5)
         logger.debug('global precision: {:.5f}'.format(global_prec))
@@ -84,7 +84,7 @@ def run_dataset(paras):
         logger.debug('global iou      : {:.5f}'.format(valid_global_iou))
 
         refined_pred_subgraphs = post_process_evo(instance['graph'], raw_pred_subgraphs, dataset=DATASET)
-        refined_global_prec, refined_global_rec, refined_global_fm, refined_global_iou, _, _, _, _, _, _, _, _, _ = evaluate_evo(instance['subgraphs'], refined_pred_subgraphs)
+        refined_global_prec, refined_global_rec, refined_global_fm, refined_global_iou, _, _, _, _, _, _, _, _, _ = evaluate_evo(instance['true_subgraphs'], refined_pred_subgraphs)
 
         logger.debug('-' * 5 + ' refined performance ' + '-' * 5)
         logger.debug('refined global precision: {:.5f}'.format(refined_global_prec))
@@ -109,52 +109,58 @@ def run_dataset(paras):
 
 
 def train_mps():
-    mu = 3
+    mu = 5
     data_type = 'train'
     path = '/network/rit/lab/ceashpc/share_data/GraphOpt/app1/synthetic'
-    fn = 'nodes_3000_windows_7_mu_{}_subsize_100_300_range_1_5_overlap_0.5_m_{}.pkl'.format(mu, data_type)
+    # fn = 'nodes_3000_windows_7_mu_{}_subsize_100_300_range_1_5_overlap_0.5_m_{}.pkl'.format(mu, data_type)
+    fn = '{}_mu_{}.pkl'.format(data_type, mu)
 
     rfn = os.path.join(path, fn)
     with open(rfn, 'rb') as rfile:
         dataset = pickle.load(rfile)
 
     # sparsity_list = [100, 125, 150, 175, 200]
-    sparsity_list = [175]
+    sparsity_list = [150]
     # trade_off_list = [0.0005, 0.001, 0.005, 0.01, 0.05, 0.1, 0.5]
-    trade_off_list = [0.5]
+    trade_off_list = [0.001]
     # learning_rate_list = [0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1.]
-    learning_rate_list = [0.5]
+    learning_rate_list = [1.]
     max_iter = 2000
     epsilon = 1e-3
-    write_to_dir = '/network/rit/lab/ceashpc/share_data/GraphOpt/log/ghtp/evo_syn'
+    # write_to_dir = '/network/rit/lab/ceashpc/share_data/GraphOpt/log/ghtp/evo_syn'
+    write_to_dir = None
 
     input_paras = []
     for sparsity in sparsity_list:
         for trade_off in trade_off_list:
             for learning_rate in learning_rate_list:
                 paras = dataset, sparsity, trade_off, learning_rate, max_iter, epsilon, write_to_dir, mu
-                input_paras.append(paras)
+                run_dataset(paras)
+                # input_paras.append(paras)
 
-    num_prcs = 40
-    pool = multiprocessing.Pool(processes=num_prcs)
-    pool.map(run_dataset, input_paras)
-    pool.close()
-    pool.join()
+    # num_prcs = 40
+    # pool = multiprocessing.Pool(processes=num_prcs)
+    # pool.map(run_dataset, input_paras)
+    # pool.close()
+    # pool.join()
 
 
 def test():
     mu = 3
     data_type = 'train'
+    # path = '/network/rit/lab/ceashpc/share_data/GraphOpt/app1/synthetic'
+    # fn = 'nodes_3000_windows_7_mu_{}_subsize_100_300_range_1_5_overlap_0.5_m_{}.pkl'.format(mu, data_type)
+
     path = '/network/rit/lab/ceashpc/share_data/GraphOpt/app1/synthetic'
-    fn = 'nodes_3000_windows_7_mu_{}_subsize_100_300_range_1_5_overlap_0.5_m_{}.pkl'.format(mu, data_type)
+    fn = '{}_mu_{}.pkl'.format(data_type, mu)
 
     rfn = os.path.join(path, fn)
     with open(rfn, 'rb') as rfile:
         dataset = pickle.load(rfile)
 
-    sparsity = 100
-    trade_off = 0.001
-    learning_rate = .005
+    sparsity = 125
+    trade_off = 0.0001
+    learning_rate = 1.
     max_iter = 2000
     epsilon = 1e-3
     write_to_dir = None

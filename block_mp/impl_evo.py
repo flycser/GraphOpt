@@ -115,6 +115,8 @@ def optimize(instance, sparsity, trade_off, max_iter=10, epsilon=1e-3):
 
             current_x_array[t] = current_x
 
+            print(t, sorted(np.nonzero(current_x)))
+
         acc_proj_time += iter_proj_time
 
         # post process
@@ -182,15 +184,22 @@ if __name__ == '__main__':
     mu_0 = 0.
     mu_1 = 5.
 
-    path = '/network/rit/lab/ceashpc/share_data/GraphOpt/synthetic'
-    fn = 'syn_mu_{:.1f}_{:.1f}_num_{:d}_{:d}_{:d}_{:d}_time_{:d}_{:d}_{:d}.pkl'.format(mu_0, mu_1, num_instances, num_nodes, num_nodes_subgraph_min, num_nodes_subgraph_max, start_time_stamps, end_time_stamps, num_time_stamps)
+    # path = '/network/rit/lab/ceashpc/share_data/GraphOpt/synthetic'
+    # fn = 'syn_mu_{:.1f}_{:.1f}_num_{:d}_{:d}_{:d}_{:d}_time_{:d}_{:d}_{:d}.pkl'.format(mu_0, mu_1, num_instances, num_nodes, num_nodes_subgraph_min, num_nodes_subgraph_max, start_time_stamps, end_time_stamps, num_time_stamps)
+    # rfn = os.path.join(path, fn)
+    # # load dataset
+    # with open(rfn, 'rb') as rfile:
+    #     dataset = pickle.load(rfile)
+
+    noise = 2
+    path = '/network/rit/lab/ceashpc/share_data/GraphOpt/app1/bwsn'
+    fn = 'test_noise_{}.pkl'.format(noise)
     rfn = os.path.join(path, fn)
-    # load dataset
     with open(rfn, 'rb') as rfile:
         dataset = pickle.load(rfile)
 
     instance = dataset[0]
 
-    sparsity = 10
-    trade_off = 0.01
+    sparsity = 1000
+    trade_off = 0.001
     run_instance(instance, sparsity, trade_off)

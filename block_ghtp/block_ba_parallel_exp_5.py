@@ -161,17 +161,17 @@ def block_graph_mp(data, k, max_iter, trade_off, log_file, func_name="EMS"):
             # g: number of connected component
             edges = np.array(relabeled_edges_set[t])
             costs = np.ones(len(edges))
-            re_head = head_proj(edges=edges, weights=costs, x=normalized_grad, g=1, s=k, budget=k - 1, delta=1. / 169., max_iter=100,
-                                err_tol=1e-8, root=-1, pruning='strong', epsilon=1e-10, verbose=0)
+            re_head = head_proj(edges=edges, weights=costs, x=normalized_grad, g=1, s=k, budget=k - 1, delta=1. / 169., max_iter=100, err_tol=1e-8, root=-1, pruning='strong', epsilon=1e-10, verbose=0)
             re_nodes, re_edges, p_x = re_head
             gamma_xt = set(re_nodes)
             indicator_x = np.zeros(len(xt))
             indicator_x[list(gamma_xt)] = 1.
             if iter == 0:
-                tmp_x = np.zeros_like(
-                    xt) + learning_rate * grad * indicator_x  # note, not update current variables, only use the intermediate results
+                # tmp_x = np.zeros_like(xt) + learning_rate * grad * indicator_x  # note, not update current variables, only use the intermediate results
+                tmp_x = np.zeros_like(xt) + learning_rate * normalized_grad * indicator_x  # note, not update current variables, only use the intermediate results
             else:
-                tmp_x = xt + learning_rate * grad * indicator_x
+                # tmp_x = xt + learning_rate * grad * indicator_x
+                tmp_x = xt + learning_rate * normalized_grad * indicator_x # todo, pls note that update gradient should be normalized gradient
             omega_x = set([ind for ind, _ in enumerate(tmp_x) if not 0. == _])
             # if 0 == iter:  # because we initialize the x as 0.000001 to avoid the divided by zero error when calculating the gradient
             #     omega_x = gamma_xt

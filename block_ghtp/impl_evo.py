@@ -37,7 +37,7 @@ from sparse_learning.proj_algo import tail_proj
 def optimize(instance, sparsity, trade_off, learning_rate, max_iter, epsilon=1e-3, logger=None):
 
     graph = instance['graph'] # get graph structure
-    true_subgraphs = instance['subgraphs'] # get ground truth
+    true_subgraphs = instance['true_subgraphs'] # get ground truth
     edges = np.array(graph.edges)
     # decide interval
     tag = False
@@ -66,7 +66,7 @@ def optimize(instance, sparsity, trade_off, learning_rate, max_iter, epsilon=1e-
 
     start_time = time.time()
     acc_proj_time = 0.
-    func = GlobalEMS(features=instance['features'], trade_off=trade_off)
+    func = GlobalEMS(features=instance['features'], trade_off=trade_off, learning_rate=1., max_iter=1)
     if logger:
         true_x_array = []
         for true_subgraph in true_subgraphs:
@@ -79,6 +79,8 @@ def optimize(instance, sparsity, trade_off, learning_rate, max_iter, epsilon=1e-
 
     # initialization
     current_x_array = func.get_init_x_zeros() + 1e-6
+    # print('start from ground truth')
+    # current_x_array = true_x_array
     for iter in range(max_iter):
         if logger:
             logger.debug('iteration: {:d}'.format(iter))
@@ -89,6 +91,7 @@ def optimize(instance, sparsity, trade_off, learning_rate, max_iter, epsilon=1e-
         omega_x_list = [] # get head projection set on each block
         for t in range(num_time_stamps):
             grad_x = func.get_gradient(current_x_array, t) # calculate partial gradient of current block
+            print(grad_x)
             current_x = current_x_array[t] if iter > 0 else np.zeros_like(current_x_array[t], dtype=np.float64) # start from all zeros when iter == 0
             normalized_grad = normalize_gradient(current_x, grad_x) # make gradient invalid when it will make updated result go beyond [0, 1]
             start_proj_time = time.time()
@@ -103,6 +106,7 @@ def optimize(instance, sparsity, trade_off, learning_rate, max_iter, epsilon=1e-
             tmp_x = current_x + learning_rate * grad_x * indicator_x # note, not update current variables, only use the intermediate results
             omega_x = set([ind for ind, _ in enumerate(tmp_x) if not 0. == _])
             omega_x_list.append(omega_x)
+            print(sorted(omega_x))
 
         bx_array = func.argmax_obj_with_proj(current_x_array, omega_x_list) # solve argmax problem with block coordinate ascent
 
@@ -156,7 +160,7 @@ def run_instance(instance, sparsity, trade_off, learning_rate, max_iter=1000, ep
         raw_pred_subgraphs.append(pred_subgraph)
 
     global_prec, global_rec, global_fm, global_iou, valid_global_prec, valid_global_rec, valid_global_fm, valid_global_iou, _, _, _, _, _ = evaluate_evo(
-        instance['subgraphs'], raw_pred_subgraphs)
+        instance['true_subgraphs'], raw_pred_subgraphs)
 
     logger.debug('-' * 5 + 'performance in the whole interval' + '-' * 5)
     logger.debug('global precision: {:.5f}'.format(global_prec))
@@ -170,7 +174,7 @@ def run_instance(instance, sparsity, trade_off, learning_rate, max_iter=1000, ep
     logger.debug('global iou      : {:.5f}'.format(valid_global_iou))
 
     refined_pred_subgraphs = post_process_evo(instance['graph'], raw_pred_subgraphs)
-    global_prec, global_rec, global_fm, global_iou, valid_global_prec, valid_global_rec, valid_global_fm, valid_global_iou, _, _, _, _, _ = evaluate_evo(instance['subgraphs'], refined_pred_subgraphs)
+    global_prec, global_rec, global_fm, global_iou, valid_global_prec, valid_global_rec, valid_global_fm, valid_global_iou, _, _, _, _, _ = evaluate_evo(instance['true_subgraphs'], refined_pred_subgraphs)
 
     logger.debug('-' * 5 + ' refined performance ' + '-' * 5)
     logger.debug('refined global precision: {:.5f}'.format(global_prec))

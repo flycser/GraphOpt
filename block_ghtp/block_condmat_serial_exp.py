@@ -62,7 +62,8 @@ def run_dataset(paras):
 
         logger.debug('instance: {:d}'.format(i))
 
-        opt_x, run_time = optimize(instance, sparsity, trade_off, learning_rate, max_iter, epsilon, logger=None)
+        # opt_x, run_time = optimize(instance, sparsity, trade_off, learning_rate, max_iter, epsilon, logger=None)
+        opt_x, run_time = optimize(instance, sparsity, trade_off, learning_rate, max_iter, epsilon, logger=logger)
 
         logger.debug('run time: {:.5f}'.format(run_time))
 
@@ -140,9 +141,9 @@ def test():
         dataset = pickle.load(rfile)
 
     sparsity = 500
-    trade_off = 0.001
+    trade_off = 0.0001
     learning_rate = 1.
-    max_iter = 10
+    max_iter = 100
     epsilon = 1e-3
     write_to_dir = None
 
@@ -153,6 +154,6 @@ def test():
 
 if __name__ == '__main__':
 
-    train_mps()
+    # train_mps()
 
-    # test()
+    test()

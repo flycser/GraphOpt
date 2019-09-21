@@ -68,7 +68,8 @@ def run_dataset(paras):
             print('normalize')
             instance['features'] = instance['features'] / np.max(instance['features'])
 
-        opt_x, run_time = optimize(instance, sparsity, trade_off, learning_rate, max_iter, epsilon, logger=None, tao=tao)
+        # opt_x, run_time = optimize(instance, sparsity, trade_off, learning_rate, max_iter, epsilon, logger=None, tao=tao)
+        opt_x, run_time = optimize(instance, sparsity, trade_off, learning_rate, max_iter, epsilon, logger=logger, tao=tao)
 
         logger.debug('run time: {:.5f}'.format(run_time))
 
@@ -141,11 +142,28 @@ def train_mps(sparsity, trade_off, learning_rate, tao):
 
 
 
-def test():
-    pass
+def test(sparsity, trade_off, learning_rate, tao):
+    path = '/network/rit/lab/ceashpc/share_data/GraphOpt/app2/condmat'
+    fn = 'train.pkl'
+    with open(os.path.join(path, fn), 'rb') as rfile:
+        dataset = pickle.load(rfile)
 
+    # sparsity_list = [600]
+    # trade_off_list = [0.001]
+    # learning_rate_list = [1.]
+    max_iter = 100
+    epsilon = 1e-3
+    # write_to_dir = '/network/rit/lab/ceashpc/share_data/GraphOpt/log/ghtp/block_condmat'
+    write_to_dir = None
+
+    print(sparsity, trade_off, learning_rate, max_iter, fn)
+
+    paras = dataset, sparsity, trade_off, learning_rate, max_iter, epsilon, write_to_dir, tao
+    run_dataset(paras)
 
 if __name__ == '__main__':
 
     sparsity, trade_off, learning_rate, tao = int(sys.argv[1]), float(sys.argv[2]), float(sys.argv[3]), int(sys.argv[4])
-    train_mps(sparsity, trade_off, learning_rate, tao)
+    # train_mps(sparsity, trade_off, learning_rate, tao)
+
+    test(sparsity, trade_off, learning_rate, tao)

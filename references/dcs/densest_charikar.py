@@ -97,4 +97,13 @@ while (len(deg) > 0):
     '''print dic'''
 print(time.clock() - start_time)
 print(subgraph)
+print(len(subgraph))
+
+import networkx as nx
+graph = nx.read_edgelist('edges_2.txt', delimiter=' ', nodetype=int)
+
+print nx.density(graph)
+x = nx.subgraph(graph, subgraph)
+print nx.density(x)
+
 print(maxdens)

@@ -235,3 +235,99 @@ class BlockSumEMS(object):
             raise ('something is wrong in gradient of x.')
 
         return grad
+
+
+class BlockGlobalEMS(object):
+
+    def __init__(self, features, trade_off, nodes_set=None, boundary_edges_dict=None, nodes_id_dict=None, verbose=True):
+        self.features = features
+        self.num_nodes = len(features)
+        self.num_blocks = len(nodes_set) if nodes_set is not None else 0
+        self.trade_off = trade_off
+        self.nodes_set = nodes_set
+        self.block_boundary_edges_dict = boundary_edges_dict
+        self.node_id_dict = nodes_id_dict
+
+        self.verbose = verbose
+
+    def get_ems_value(self, x, feature_vector):
+        sum_x = np.sum(x)
+
+        if sum_x == 0.:
+            return 0.
+        else:
+            ct_x = np.dot(feature_vector, x)
+            func_val = ct_x / np.sqrt(sum_x)
+
+        return func_val
+
+    def get_sum_ems(self, x_array):
+        score = 0.
+
+        for b in range(self.num_blocks):
+            x = x_array[sorted(self.nodes_set[b])]
+            feat = self.features[sorted(self.nodes_set[b])]
+            score += self.get_ems_value(x, feat)
+
+        return score
+
+    def get_obj_val(self, x_array, boundary_edges_dict):
+        obj_val, sum_ems, penalty, smooth = 0., 0., 0., 0.
+        sum_ems = self.get_sum_ems(x_array)
+
+        for key in boundary_edges_dict:
+            for (u, v) in boundary_edges_dict[key]:
+                diff = x_array[u] - x_array[v]
+                norm = np.linalg.norm(diff) ** 2
+                smooth += norm
+                penalty -= self.trade_off * norm
+        obj_val = sum_ems + penalty
+
+        return obj_val, sum_ems, penalty, smooth
+
+
+    def get_init_x_random(self):
+        x = np.random.rand(self.num_nodes)
+        x = np.array(x >= 0.5, dtype=np.float64)
+
+        return x
+
+    def get_init_x_zeros(self):
+        x = np.zeros(self.num_nodes, dtype=np.float64)
+
+        return x
+
+
+    def get_ems_grad(self, x, features):
+        sum_x = np.sum(x)
+        if 0. == sum_x:
+            print('gradient_x: input x vector values are all zeros !!!', file=sys.stderr)
+            ems_grad = [0.] * self.num_nodes
+        else:
+            ct_x = np.dot(features, x)
+            ems_grad = features / np.sqrt(sum_x) - .5 * ct_x / np.power(sum_x, 1.5)
+
+        if np.isnan(ems_grad).any():
+            raise ('something is wrong in gradient of x.')
+
+        return np.array(ems_grad)
+
+    def get_penalty_grad(self, x, boundary_edge_x_dict):
+        penalty_grad = [0.] * len(x)
+        for (node_1, node_2) in boundary_edge_x_dict:
+            adj_node_x = boundary_edge_x_dict[(node_1, node_2)]
+            penalty_grad[node_1] += 2 * (x[node_1] - adj_node_x)
+
+        if np.isnan(penalty_grad).any():
+            raise ('something is wrong in gradient of x.')
+
+        return np.array(penalty_grad)
+
+    def get_gradient(self, x, features, boundary_edge_x_dict):
+        grad = self.get_ems_grad(x, features)
+        grad -= self.trade_off * self.get_penalty_grad(x, boundary_edge_x_dict)
+
+        if np.isnan(grad).any():
+            raise ('something is wrong in gradient of x.')
+
+        return grad

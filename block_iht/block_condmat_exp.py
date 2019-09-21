@@ -124,15 +124,17 @@ def train_mps(sparsity, trade_off, learning_rate, normalize):
     write_to_dir = None
     # write_to_dir = '/network/rit/lab/ceashpc/share_data/GraphOpt/log/ghtp/block_ba'
 
+    print(sparsity, trade_off, learning_rate, max_iter)
+
     paras = dataset, sparsity, trade_off, learning_rate, max_iter, epsilon, write_to_dir, normalize
     run_dataset(paras)
 
 
 
 if __name__ == '__main__':
-    # sparsity = 500
-    # trade_off = 0.0001
-    # learning_rate = .5
-    # normalize = False
-    sparsity, trade_off, learning_rate, normalize = int(sys.argv[1]), float(sys.argv[2]), float(sys.argv[3]), bool(sys.argv[4])
+    sparsity = 500
+    trade_off = 0.0001
+    learning_rate = 1.
+    normalize = False
+    # sparsity, trade_off, learning_rate, normalize = int(sys.argv[1]), float(sys.argv[2]), float(sys.argv[3]), bool(sys.argv[4])
     train_mps(sparsity, trade_off, learning_rate, normalize)

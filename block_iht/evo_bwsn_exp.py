@@ -59,7 +59,8 @@ def run_dataset(paras):
 
         logger.debug('instance: {:d}'.format(i))
 
-        opt_x_array, run_time = optimize(instance, sparsity, trade_off, learning_rate, max_iter, epsilon, logger=None)
+        # opt_x_array, run_time = optimize(instance, sparsity, trade_off, learning_rate, max_iter, epsilon, logger=None)
+        opt_x_array, run_time = optimize(instance, sparsity, trade_off, learning_rate, max_iter, epsilon, logger=logger)
 
         logger.debug('run time: {:.5f}'.format(run_time))
 
@@ -156,18 +157,32 @@ def test(sparsity, trade_off, learning_rate, noise):
     with open(rfn, 'rb') as rfile:
         dataset = pickle.load(rfile)
 
+    new_dataset = []
+
+    for instance in dataset:
+        if 'subgraphs' in instance.keys():
+            instance['true_subgraphs'] = instance.pop('subgraphs')
+            # print(instance.keys())
+            new_dataset.append(instance)
+
     max_iter = 2000
     epsilon = 1e-3
-    write_to_dir = '/network/rit/lab/ceashpc/share_data/GraphOpt/log/iht/evo_bwsn'
+    # write_to_dir = '/network/rit/lab/ceashpc/share_data/GraphOpt/log/iht/evo_bwsn'
+    write_to_dir = None
 
-    paras = dataset, sparsity, trade_off, learning_rate, max_iter, epsilon, write_to_dir, data_type, noise
+
+    print(sparsity, trade_off, learning_rate, max_iter, noise, fn)
+
+    paras = new_dataset, sparsity, trade_off, learning_rate, max_iter, epsilon, write_to_dir, data_type, noise
 
     run_dataset(paras)
 
 
 if __name__ == '__main__':
-    sparsity, trade_off, learning_rate, noise = int(sys.argv[1]), float(sys.argv[2]), float(sys.argv[3]), int(sys.argv[4])
+    # sparsity, trade_off, learning_rate, noise = int(sys.argv[1]), float(sys.argv[2]), float(sys.argv[3]), int(sys.argv[4])
 
     # train_mps(sparsity, trade_off, learning_rate, noise)
+
+    sparsity, trade_off, learning_rate, noise = 1000, 0.001, 1., 10
 
     test(sparsity, trade_off, learning_rate, noise)

@@ -29,12 +29,16 @@ def optimize(instance, sparsity, threshold, trade_off, learning_rate, max_iter, 
     first_graph = instance['first_graph']
     second_graph = instance['second_graph']
     true_subgraph = instance['true_subgraph']
+    # true_subgraph = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14] # note
     features = instance['weight']
 
     first_graph_edges = np.array(first_graph.edges)
     # second_graph_edges = np.array(second_graph.edges)
     first_graph_edge_weights = np.ones(first_graph.number_of_edges())
     # second_graph_edge_weights = np.ones(second_graph.number_of_edges())
+
+    print(first_graph.number_of_nodes())
+    print(second_graph.number_of_nodes())
 
     if first_graph.number_of_nodes() != second_graph.number_of_nodes():
         raise('error, wrong dual network input !!!')
@@ -87,7 +91,7 @@ def optimize(instance, sparsity, threshold, trade_off, learning_rate, max_iter, 
         iter_proj_time = 0.
         # iter_time = time.time()
         if iter == 0:
-            norm_grad_x = normalize_gradient(np.zeros_like(current_x), grad_x)
+            norm_grad_x = normalize_gradient(np.zeros_like(current_x), grad_x) # default, start from all zero
         else:
             norm_grad_x = normalize_gradient(current_x, grad_x)
 
@@ -107,7 +111,7 @@ def optimize(instance, sparsity, threshold, trade_off, learning_rate, max_iter, 
         omega_x = set([ind for ind, _ in enumerate(tmp_x) if not 0. == _])
 
         # handle second graph
-        grad_y = func.get_gradient(current_y, current_x)
+        grad_y = func.get_gradient(current_y, current_x) # note, order
         # note, test not normalize
         if iter == 0:
             norm_grad_y = normalize_gradient(np.zeros_like(current_y), grad_y)
@@ -118,13 +122,14 @@ def optimize(instance, sparsity, threshold, trade_off, learning_rate, max_iter, 
         # note, should positive
         norm_grad_y = np.absolute(norm_grad_y)
 
-        min = 10
-        max = 80
+        min = 1
+        max = 200
         step = 20
         start_proj_time = time.time()
 
-        print(norm_grad_y)
+        # print(norm_grad_y)
         gamma_y = dense_projection(second_graph, norm_grad_y, threshold, min, max, step, normalize=False, sort=False)
+        # gamma_y = dense_projection(second_graph, norm_grad_y, threshold, min, max, step, normalize=True, sort=False)
         iter_proj_time += (time.time() - start_proj_time)
         print('head projection time for y: {:.5f}'.format(time.time() - start_proj_time))
 
@@ -157,8 +162,8 @@ def optimize(instance, sparsity, threshold, trade_off, learning_rate, max_iter, 
 
         # print(by) # note, by in [0, 1], so we should change lmbd range
 
-        min = 200
-        max = 900
+        min = 100
+        max = 1600
         step = 200
         # tail projection for the second graph
         start_proj_time = time.time()
@@ -168,7 +173,12 @@ def optimize(instance, sparsity, threshold, trade_off, learning_rate, max_iter, 
         print('tail projection time for y: {:.5f}'.format(time.time() - start_proj_time))
 
         current_y = np.zeros_like(current_y)
-        current_y[list(psi_y)] = bx[list(psi_y)]
+        # current_y[list(psi_y)] = bx[list(psi_y)]
+
+        # union current_y and psi_y, make psi_y in the current_y
+        # psi_y = psi_y & np.nonzero(current_y)[0] # note, improvement, avoid result extended randomly
+
+        current_y[list(psi_y)] = by[list(psi_y)]
         current_y = normalize(current_y)  # constrain current_y in [0, 1]
 
         print('{} iteration funval'.format(iter), func.get_obj_val(current_x, current_y))
@@ -182,25 +192,25 @@ def optimize(instance, sparsity, threshold, trade_off, learning_rate, max_iter, 
         if logger:
             logger.debug('difference norm: {}'.format(diff_norm))
 
-            raw_pred_subgraph_x = np.nonzero(current_x)[0]
-
-            prec, rec, fm, iou = evaluate_block(instance['true_subgraph'], raw_pred_subgraph_x)
-
-            logger.debug('-' * 5 + ' performance of x prediction ' + '-' * 5)
-            logger.debug('precision: {:.5f}'.format(prec))
-            logger.debug('recall   : {:.5f}'.format(rec))
-            logger.debug('f-measure: {:.5f}'.format(fm))
-            logger.debug('iou      : {:.5f}'.format(iou))
-
-            raw_pred_subgraph_y = np.nonzero(current_y)[0]
-
-            prec, rec, fm, iou = evaluate_block(instance['true_subgraph'], raw_pred_subgraph_y)
-
-            logger.debug('-' * 5 + ' performance of y prediction ' + '-' * 5)
-            logger.debug('precision: {:.5f}'.format(prec))
-            logger.debug('recall   : {:.5f}'.format(rec))
-            logger.debug('f-measure: {:.5f}'.format(fm))
-            logger.debug('iou      : {:.5f}'.format(iou))
+            # raw_pred_subgraph_x = np.nonzero(current_x)[0]
+            #
+            # prec, rec, fm, iou = evaluate_block(instance['true_subgraph'], raw_pred_subgraph_x)
+            #
+            # logger.debug('-' * 5 + ' performance of x prediction ' + '-' * 5)
+            # logger.debug('precision: {:.5f}'.format(prec))
+            # logger.debug('recall   : {:.5f}'.format(rec))
+            # logger.debug('f-measure: {:.5f}'.format(fm))
+            # logger.debug('iou      : {:.5f}'.format(iou))
+            #
+            # raw_pred_subgraph_y = np.nonzero(current_y)[0]
+            #
+            # prec, rec, fm, iou = evaluate_block(instance['true_subgraph'], raw_pred_subgraph_y)
+            #
+            # logger.debug('-' * 5 + ' performance of y prediction ' + '-' * 5)
+            # logger.debug('precision: {:.5f}'.format(prec))
+            # logger.debug('recall   : {:.5f}'.format(rec))
+            # logger.debug('f-measure: {:.5f}'.format(fm))
+            # logger.debug('iou      : {:.5f}'.format(iou))
 
 
         if diff_norm < epsilon:
@@ -243,8 +253,6 @@ def dense_projection(graph, weight, threshold, min, max, step, normalize=False, 
     print('density projection: density {}, norm {}, size {}, set {}'.format(best_density_subgraph[0], max_weight, len(best_density_subgraph[1]), sorted(list(best_density_subgraph[1]))))
 
     return best_density_subgraph[1]
-
-
 
 
 def greedAP(graph, weight, lmbd, normalize=True, sort=False, verbose=True):
@@ -301,10 +309,10 @@ def BFNS(graph, weight, lmbd, normalize=True, sort=True, verbose=True):
     if normalize:
         weight = (weight - np.min(weight)) / (np.max(weight) - np.min(weight))
     else:
-        weight = weight - np.min(weight)
+        weight = weight - np.min(weight) # positive
 
-    if sort:
-        weight[::-1].sort()
+    if sort: # this step invalid since shuffle operation
+        weight[::-1].sort() # consider node according to its weight descendingly
 
     nodes = [node for node in graph.nodes()]
     shuffle(nodes)
@@ -322,10 +330,14 @@ def BFNS(graph, weight, lmbd, normalize=True, sort=True, verbose=True):
         #   Q_AP(X\cup u) - Q_AP(X)
         # = I(X\cup u) + D_AP(V) - D_AP(X\cup u) - I(X) - D_AP(V) + D_AP(X)
         # = I(X) + I(u) + D_AP(V) - D_AP(X\cup u) - I(X) - D_AP(V) + D_AP(X)
-        # = I(u) + D(X) - D_AP(X\cup u)
+        # = I(u) + D_AP(X) - D_AP(X\cup u)
+        # D_AP(X) - D_AP(X\cup u) equal to summation of all path lengths from u to X
         Dap_a = 0
         for node in X:
-            Dap_a -= shortest_lengths_from_u[node]
+            if node not in shortest_lengths_from_u.keys(): # note, handle not connected nodes
+                Dap_a -= max(shortest_lengths_from_u.values())
+            else:
+                Dap_a -= shortest_lengths_from_u[node]
         a = lmbd * weight[u] + Dap_a
 
         #   Q_AP(Y\u) - Q_AP(Y)
@@ -334,7 +346,10 @@ def BFNS(graph, weight, lmbd, normalize=True, sort=True, verbose=True):
         # = -I(u) + D_AP(Y) - D_AP(Y\u)
         Dap_b = 0
         for node in Y:
-            Dap_b += shortest_lengths_from_u[node]
+            if node not in shortest_lengths_from_u.keys(): # note, handle not connected nodes
+                Dap_b += max(shortest_lengths_from_u.values())
+            else:
+                Dap_b += shortest_lengths_from_u[node]
 
         b = - lmbd * weight[u] + Dap_b
 

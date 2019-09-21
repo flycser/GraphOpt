@@ -15,7 +15,7 @@ def Find_Density(answer):
         ''' Finds the density of the returned subgraph.'''
         degree = 0
         # file = open("edges.txt","r")
-        file = open("edges_2.txt","r")
+        file = open("edges_3.txt","r")
         while True:
                 edge = file.readline()
                 #print "Reading an edge"
@@ -56,7 +56,8 @@ def make_graph(number_of_nodes, number_of_edges, least_density):
         #print nodes
         degrees = {}
         #print degrees
-        file = open("edges.txt","r")
+        # file = open("edges.txt","r")
+        file = open("edges_2.txt","r")
         while True:
                 edge = file.readline()
                 if not edge:
@@ -99,4 +100,5 @@ start_time = time.clock()
 answer = Find_Densest_Subgraph(number_of_nodes, number_of_edges)
 print time.clock() - start_time
 print answer
+print len(answer)
 Find_Density(answer)
