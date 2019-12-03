@@ -67,7 +67,6 @@ python evo_dc_exp.py > /network/rit/lab/ceashpc/share_data/GraphOpt/log/ghtp/spa
 
 [comment]: <> (Chen, Feng, and Baojian Zhou. "A Generalized Matching Pursuit Approach for Graph-Structured Sparsity." IJCAI. 2016.)
 
+[comment]: <> (Zhou, Baojian, and Feng Chen. "Graph-structured sparse optimization for connected subgraph detection." 2016 IEEE 16th International Conference on Data Mining \(ICDM\). IEEE, 2016. )
 
-[comment]: <> (Zhou, Baojian, and Feng Chen. "Graph-structured sparse optimization for connected subgraph detection." 2016 IEEE 16th International Conference on Data Mining (ICDM). IEEE, 2016. )
-
-[comment]: <> (Chen, Feng, et al. "A generic framework for interesting subspace cluster detection in multi-attributed networks." 2017 IEEE International Conference on Data Mining (ICDM). IEEE, 2017.)
+[comment]: <> (Chen, Feng, et al. "A generic framework for interesting subspace cluster detection in multi-attributed networks." 2017 IEEE International Conference on Data Mining \(ICDM\). IEEE, 2017.)
